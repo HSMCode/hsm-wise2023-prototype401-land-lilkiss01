@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.SceneManagement;
 
@@ -31,12 +32,19 @@ public class SliderGame : MonoBehaviour
     public Animator Enemy;
     public Animator Löwe;
 
+    public AudioSource Aud_Lion;
+    public AudioSource Aud_Enemy;
+
     [Range(0, 1)]
     public float redValue = 1.0f;
     [Range(0, 1)]
     public float greenValue = 1.0f;
     [Range(0, 1)]
     public float blueValue = 1.0f;
+
+    public Camera mainCamera;
+    public float shakeDuration = 0.5f;
+    public float shakeMagnitude = 0.1f;
 
     void Start()
     {
@@ -125,6 +133,7 @@ public class SliderGame : MonoBehaviour
             Invoke("Won", 1f);
             Enemy.SetTrigger("Death");
             Löwe.SetTrigger("Attack");
+            Aud_Lion.Play();
         }
         else
         {
@@ -137,6 +146,7 @@ public class SliderGame : MonoBehaviour
                 ChangeImageColor(colorChangeImages[consecutiveMisses - 1], new Color(redValue, greenValue, blueValue));
                 Enemy.SetTrigger("Attack");
                 Löwe.SetTrigger("Hit");
+                Aud_Enemy.Play();
             }
 
             if (consecutiveMisses >= 3)
@@ -145,11 +155,33 @@ public class SliderGame : MonoBehaviour
                 Restart.SetActive(true);
                 Invoke("Lost", 1f);
                 Löwe.SetTrigger("Death");
-                consecutiveMisses = 0; // Setzt Zählvariable zurück
+                consecutiveMisses = 0;
             }
+
+            StartCoroutine(ShakeCamera());
         }
         checkHandlePosition = false;
     }
+
+    IEnumerator ShakeCamera()
+{
+    float elapsed = 0.0f;
+    Vector3 originalCamPos = mainCamera.transform.position;
+
+    while (elapsed < shakeDuration)
+    {
+        float x = Random.Range(-1f, 1f) * shakeMagnitude;
+        float y = Random.Range(-1f, 1f) * shakeMagnitude;
+
+        mainCamera.transform.position = new Vector3(originalCamPos.x + x, originalCamPos.y + y, originalCamPos.z);
+
+        elapsed += Time.deltaTime;
+
+        yield return null;
+    }
+
+    mainCamera.transform.position = originalCamPos;
+}
 
     void Lost()
     {
